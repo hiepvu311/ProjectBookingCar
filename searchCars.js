@@ -1,6 +1,6 @@
 // searchCars.js
 const { Op } = require('sequelize');
-const Car = require('./models/Car'); // Đảm bảo điều chỉnh đường dẫn nếu cần
+const Car = require('./models/Car'); 
 
 
 async function searchCarByName(substring) {
@@ -8,7 +8,7 @@ async function searchCarByName(substring) {
         const cars = await Car.findAll({
             where: {
                 Brand: {
-                    [Op.like]: `%${substring}%`, // Dùng SQL LIKE để tìm kiếm chuỗi chứa.
+                    [Op.like]: `%${substring}%`, 
                 },
             },
         });
@@ -25,7 +25,7 @@ async function searchCarByName(substring) {
         return cars;
     } catch (error) {
         console.error('Error searching for cars:', error);
-        throw error; // Ném lại lỗi sau khi log
+        throw error; 
     }
 }
 

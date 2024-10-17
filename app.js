@@ -5,7 +5,8 @@ const Car = require('./models/Car');
 const Bookings = require('./models/Bookings');
 const Rentings = require('./models/Rentings');
 const searchCarByName = require('./searchCars');
-const {getAllCars} =  require('./getAllCars')
+const {getAllCars} =  require('./getAllCars');
+const { deleteCarById } = require('./deleteCars');
 
 const app = express();
 const port = 3000;
@@ -24,7 +25,7 @@ app.get('/getAllCars', getAllCars);
 
 //Call API getAllCars searchCarByName
 app.get('/searchCarByName', async (req, res) => {
-  const { name } = req.query; // Lấy chuỗi tìm kiếm từ query params
+  const { name } = req.query;
 
   if (!name) {
     return res.status(400).json({ error: 'Missing search parameter "name"' });
@@ -38,6 +39,9 @@ app.get('/searchCarByName', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Định nghĩa route API DeleteCar
+app.delete('/deleteCar/:id', deleteCarById);
 
 
 app.listen (port, () => {
