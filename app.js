@@ -1,15 +1,17 @@
 //app.js  
 const express = require('express');
 const sequelize = require ('./db');
-const Car = require('./models/Car');
-const Bookings = require('./models/Bookings');
-const Rentings = require('./models/Rentings');
 const searchCarByName = require('./searchCars');
 const {getAllCars} =  require('./getAllCars');
 const { deleteCarById } = require('./deleteCars');
+const { addNewCar } = require('./addCars');
 
 const app = express();
 const port = 3000;
+
+//Middleware parse JSON
+app.use(express.json());
+
 
 //Create connection to database
 sequelize.sync().then(() =>{
@@ -40,8 +42,10 @@ app.get('/searchCarByName', async (req, res) => {
   }
 });
 
-// Định nghĩa route API DeleteCar
+// Call API DeleteCar
 app.delete('/deleteCar/:id', deleteCarById);
+// Call API AddCar
+app.post('/addCar', addNewCar);
 
 
 app.listen (port, () => {
