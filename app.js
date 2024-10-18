@@ -5,6 +5,7 @@ const searchCarByName = require('./searchCars');
 const {getAllCars} =  require('./getAllCars');
 const { deleteCarById } = require('./deleteCars');
 const { addNewCar } = require('./addCars');
+const { updateCar } = require('./updateCar');
 
 const app = express();
 const port = 3000;
@@ -46,6 +47,8 @@ app.get('/searchCarByName', async (req, res) => {
 app.delete('/deleteCar/:id', deleteCarById);
 // Call API AddCar
 app.post('/addCar', addNewCar);
+// Định nghĩa route API UpdateCar
+app.put('/updateCar/:id', updateCar);
 
 
 app.listen (port, () => {
