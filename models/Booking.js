@@ -19,7 +19,7 @@ const Bookings = sequelize.define('Bookings',{
         type: DataTypes.DATEONLY,
         allowNull: false,
     },
-
+ 
     Duration_min: {
         type: DataTypes.INTEGER,
         allowNull: false,

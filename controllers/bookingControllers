@@ -1,0 +1,190 @@
+//booking Controller
+const Bookings = require('../models/Booking');
+const { Op } = require('sequelize');
+
+//function validate booking time
+function isValidTimeInterval(time) {
+    const minutes  = new Date(time).getMinutes();
+    return minutes % 15 === 0;
+};
+
+//function validate if booking is 
+async function isValidBooking(newBooking) {
+    const overlappingBooking =  await Bookings.findOne(
+        {
+            where: {
+                IDcar: newBooking.IDcar,
+                Date: newBooking.Date,
+                timeStart: { [Op.lt]: newBooking.timeStop },
+                timeStop: { [Op.gt]: newBooking.timeStart }
+            }
+        }
+    )    
+    return !!overlappingBooking;
+}
+
+async function isOverlappingBooking(ID, newBooking) {
+    const overlappingBookings = await Bookings.findOne({
+      where: {
+        IDcar: newBooking.IDcar,
+        Date: newBooking.Date,
+        timeStart: { [Op.lt]: newBooking.timeStop },
+        timeStop: { [Op.gt]: newBooking.timeStart },
+        ID: { [Op.ne]: ID } 
+      }
+    });
+    return !!overlappingBookings;
+  }
+
+async function getAllBookings(req, res) {
+    try
+    {
+        const booking = await Bookings.findAll();
+        res.json(booking);
+        console.log('getAllBooking function called');
+    }
+    catch(error)
+    {
+        console.error('Error retrieving cars:', error);
+        res.status(500).json({error: 'Interal server error'});
+    }
+    
+};
+
+async function deleteBooking(req,res) {
+    try
+    {
+        const {idBooking} = req.params;
+        console.log('Delete request received:', req.params);
+        const booking = await Bookings.findByPk(idBooking);
+        if (!booking) {
+            return res.status(404).json({message: 'Booking not found'});
+        }
+
+        await booking.destroy();
+        res.json ({ message: 'Booking deleted successfully'});
+    }
+    catch (error){
+        console.error ('Error deleting car:',error);
+        res.status(500).json({error: 'Internal server error'})
+    }
+}
+
+async function updateBooking(req, res) {
+    try
+    {
+        const {idBooking} = req.params;
+        console.log('Updating booking with ID:', idBooking);
+        const { IDcar, Date, Duration_min, timeStart,timeStop, IDdriver} = req.body;
+        const booking = await Bookings.findByPk(idBooking);
+
+        if (!booking) 
+        {
+            return res.status(404).json({ message: 'booking not found' });
+        }
+
+        const isOverlapping = await isOverlappingBooking(idBooking, { IDcar, Date, timeStart, timeStop });
+        if (isOverlapping) {
+          return res.status(400).json({ error: 'Booking time overlaps with an existing booking.' });
+        }
+
+        booking.IDcar = IDcar|| booking.IDcar;
+        booking.Date = Date || booking.Date;
+        booking.Duration_min = Duration_min || booking.Duration_min;
+        booking.timeStart = timeStart|| booking.timeStart;
+        booking.timeStop = timeStop|| booking.timeStop;
+        booking.IDdriver = IDdriver|| booking.IDdriver;
+
+        await  booking.save();
+
+        res.json({ message: 'Car updated successfully', booking});
+
+    }
+
+    catch (error) {
+        console.error('Error updating car:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+async function addBooking(req,res){
+    const {IDcar, Date, Duration_min, timeStart, timeStop, IDdriver} = req.body;
+    if (!IDcar|| !Date || !Duration_min || !timeStart || !timeStop || !IDdriver)
+    {
+        return res.status(400).json({ error: 'Missing required fields' });
+       
+    }
+    if (!isValidTimeInterval(timeStart) || !isValidTimeInterval(timeStop))
+    {
+        return res.status(400).json({ error: 'Bookingtime invalide' });
+    }
+
+    const isOverlapping = await isValidBooking({ IDcar, Date, timeStart, timeStop });
+    if (isOverlapping) {
+      return res.status(400).json({ error: 'Booking time overlaps with an existing booking.' });
+    }
+
+    console.log('Create a new booking');
+    try
+    {
+        const newBooking = await Bookings.create({
+            IDcar, Date, Duration_min, timeStart, timeStop, IDdriver
+          });
+        res.status(201).json({ message: 'Car added successfully', car: newBooking });
+    }
+    catch (error) {
+        console.error('Error adding new booking:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+        
+    }
+
+
+async function getBookingSlots(IDCar, startingDate) {
+    try {
+        const bookings = await Bookings.findAll({
+            where: {
+                IDcar: IDCar,
+                Date: startingDate,
+            },
+            order: [['timeStart', 'ASC']]
+            
+        });
+
+        if (bookings.length === 0) {
+            console.log('No bookings found for this date.');
+            return []; // Trả về mảng rỗng nếu không có booking nào
+        }
+        return bookings;
+        }
+        catch (error) {
+            console.error('Error fetching booking slots:', error);
+            throw new Error('Could not fetch booking slots');
+          }
+}
+
+async function getBookingByIDCarAndDate(req, res) {
+    const { IDCar, startingDate } = req.params;
+
+     try {
+    const bookingSlots = await getBookingSlots(IDCar, startingDate);
+
+    if (!bookingSlots || bookingSlots.length === 0) {
+      return res.status(404).json({ message: 'No bookings found for this car and date.' });
+    }
+    
+    res.json(bookingSlots);
+  } catch (err) {
+    console.error('Error fetching bookings:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = {
+    getAllBookings,
+    deleteBooking,
+    updateBooking,
+    addBooking,
+    getBookingSlots,
+    getBookingByIDCarAndDate
+}
