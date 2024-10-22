@@ -1,0 +1,111 @@
+//renting Controller
+const Rentings = require('../models/Renting');
+const Bookings = require('../models/Booking');
+const { Op } = require('sequelize');
+
+//delete renting
+async function deleteRenting(req,res) {
+    try
+    {
+        const {idRenting} = req.params;
+        console.log('Delete request received:', req.params);
+        const renting = await Rentings.findByPk(idRenting);
+        if(!renting)
+            {
+                return res.status(404).json({message: 'Booking not found'});
+        }
+        await renting.destroy();
+        res.json({ message: 'Renting deleted successfully'});
+    }
+    catch (error){
+        console.error ('Error deleting renting:',error);
+        res.status(500).json({error: 'Internal server error'})
+    }
+
+}
+
+//get all renting
+async function getAllRenting(req,res) {
+    try
+    {
+        const rentings = await Rentings.findAll()
+        res.json(rentings)
+        console.log('getAllRenting function called')
+    }
+    catch(error)
+    {
+        console.error('Error retrieving Renting:', error);
+        res.status(500).json({error: 'Interal server error'});
+    }
+    
+}
+
+//update Renting
+async function updateRenting(req,res){
+    try
+    {
+        const {idRenting} = req.params;
+        console.log('Updating renting with ID:', idRenting);
+        const { kmStart, kmStop, feePerKm, feePerHour, isFninished} = req.body;
+        const renting = await Rentings.findByPk(idRenting);
+        if (!renting) 
+            {
+                return res.status(404).json({ message: 'booking not found' });
+            }
+
+            renting.kmStart =  kmStart || renting.kmStart
+            renting.kmStop = kmStop || renting.kmStop
+            renting.feePerKm = feePerKm || renting.feePerKm
+            renting.feePerHour = feePerHour || renting.feePerHour
+            renting.isFninished = isFninished || renting.isFninished
+        
+            await   renting.save();
+
+            res.json({ message: 'Renting updated successfully',  renting});
+
+
+    }
+    catch (error) {
+        console.error('Error updating car:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+
+}
+
+async function addRenting(req, res) {
+    const { IDbooking, kmStart, kmStop, feePerKm, feePerHour } = req.body;
+
+    try {
+        const booking = await Bookings.findByPk(IDbooking);
+
+        if (!booking) {
+            return res.status(404).json({ error: 'Booking not found.' });
+        }
+
+
+        const newRenting = await Rentings.create({
+            IDcar: booking.IDcar,
+            IDbooking: booking.ID,
+            timeStart: booking.timeStart,
+            timeStop: booking.timeStop,
+            kmStart: kmStart,
+            kmStop: kmStop,
+            feePerKm: feePerKm,
+            feePerHour: feePerHour,
+            IDdriver: booking.IDdriver,
+            isFninished: false 
+        });
+
+        res.status(201).json(newRenting);
+    } catch (err) {
+        console.error('Error creating renting:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+module.exports = {
+    deleteRenting,
+    getAllRenting,
+    updateRenting,
+    addRenting
+}

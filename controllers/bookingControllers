@@ -36,6 +36,7 @@ async function isOverlappingBooking(ID, newBooking) {
     return !!overlappingBookings;
   }
 
+//get all bookings  
 async function getAllBookings(req, res) {
     try
     {
@@ -51,6 +52,7 @@ async function getAllBookings(req, res) {
     
 };
 
+//delete booking
 async function deleteBooking(req,res) {
     try
     {
@@ -65,11 +67,12 @@ async function deleteBooking(req,res) {
         res.json ({ message: 'Booking deleted successfully'});
     }
     catch (error){
-        console.error ('Error deleting car:',error);
+        console.error ('Error deleting booking:',error);
         res.status(500).json({error: 'Internal server error'})
     }
 }
 
+//update booking
 async function updateBooking(req, res) {
     try
     {
@@ -107,6 +110,8 @@ async function updateBooking(req, res) {
     }
 }
 
+
+//add booking
 async function addBooking(req,res){
     const {IDcar, Date, Duration_min, timeStart, timeStop, IDdriver} = req.body;
     if (!IDcar|| !Date || !Duration_min || !timeStart || !timeStop || !IDdriver)
@@ -139,22 +144,28 @@ async function addBooking(req,res){
         
     }
 
-
+//get booking slots
 async function getBookingSlots(IDCar, startingDate) {
     try {
+        const whereCondition = {
+            IDcar: IDCar,
+        };
+
+        if (startingDate) {
+            whereCondition.Date = {
+                [Op.gte]: startingDate, 
+            };
+        }
         const bookings = await Bookings.findAll({
-            where: {
-                IDcar: IDCar,
-                Date: startingDate,
-            },
-            order: [['timeStart', 'ASC']]
-            
+            where: whereCondition,
+            order: [['timeStart', 'ASC']],
         });
 
         if (bookings.length === 0) {
-            console.log('No bookings found for this date.');
+            console.log('No bookings found.');
             return []; // Trả về mảng rỗng nếu không có booking nào
         }
+
         return bookings;
         }
         catch (error) {
@@ -163,8 +174,10 @@ async function getBookingSlots(IDCar, startingDate) {
           }
 }
 
+//get booking by IDCar and Date
 async function getBookingByIDCarAndDate(req, res) {
-    const { IDCar, startingDate } = req.params;
+    const { IDCar } = req.params;
+    const { startingDate } = req.query;
 
      try {
     const bookingSlots = await getBookingSlots(IDCar, startingDate);
@@ -186,5 +199,6 @@ module.exports = {
     updateBooking,
     addBooking,
     getBookingSlots,
-    getBookingByIDCarAndDate
+    getBookingByIDCarAndDate,
+    isValidBooking
 }
