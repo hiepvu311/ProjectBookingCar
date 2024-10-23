@@ -1,5 +1,7 @@
 //booking Controller
 const Bookings = require('../models/Booking');
+const Drivers = require('../models/Driver');
+const Car = require('../models/Car');
 const { Op } = require('sequelize');
 
 //function validate booking time
@@ -193,6 +195,45 @@ async function getBookingByIDCarAndDate(req, res) {
   }
 }
 
+async function getBookingsByIDdriver(req, res){
+    try {
+        const { idDriver } = req.params;
+        
+        const driver = await Drivers.findByPk(idDriver);
+        if (!driver) {
+            return res.status(404).json({ message: 'Driver not found' });
+        }
+
+        const bookings = await Bookings.findAll({
+            where: { IDdriver: idDriver },
+            include: [
+                {
+                    model: Drivers,
+                    as: 'Driver',
+                    attributes: ['ID', 'Name', 'FamilyName', 'Email'],
+                },
+                {
+                    model: Car, 
+                    attributes: ['Brand', 'Model', 'Color'],
+                    required: false,
+                }]
+        });
+
+
+        if (bookings.length === 0) {
+            return res.status(404).json({ message: 'No bookings found for this driver' });
+        }
+
+        res.json({
+            bookings
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+
 module.exports = {
     getAllBookings,
     deleteBooking,
@@ -200,5 +241,6 @@ module.exports = {
     addBooking,
     getBookingSlots,
     getBookingByIDCarAndDate,
-    isValidBooking
+    isValidBooking,
+    getBookingsByIDdriver
 }

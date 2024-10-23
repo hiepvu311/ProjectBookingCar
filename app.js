@@ -7,10 +7,11 @@ const { deleteCarById } = require('./deleteCars');
 const { addNewCar } = require('./addCars');
 const { updateCar } = require('./updateCar');
 const bookingRoutes = require('./routes/bookingRoutes');
-const rentingRoutes = require('./routes/rentingRoutes')
+const rentingRoutes = require('./routes/rentingRoutes');
+const driverRoutes = require('./routes/driverRoutes')
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const { route } = require('./routes/bookingRoutes');
+require('./models/associations');
 
 const app = express();
 const port = 3000;
@@ -254,6 +255,9 @@ app.use('/bookings', bookingRoutes);
 
 //Route API renting
 app.use('/rentings', rentingRoutes);
+
+//Route API driver
+app.use('/drivers', driverRoutes);
 
 
 app.listen (port, () => {

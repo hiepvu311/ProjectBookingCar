@@ -6,7 +6,8 @@ const {
     updateBooking,
     addBooking,
     getBookingSlots,
-    getBookingByIDCarAndDate
+    getBookingByIDCarAndDate,
+    getBookingsByIDdriver
 }
  = require('../controllers/bookingControllers')
 
@@ -50,7 +51,7 @@ const {
 router.get('/getAllBookings', getAllBookings);
 
 // Route to delete a booking
-/**
+/**ad
  * @swagger
  * /bookings/deleteBooking/{idBooking}:
  *   delete:
@@ -261,6 +262,9 @@ router.post('/addBooking', addBooking);
  *         description: Internal server error
  */
 router.get('/getBookingSlots/:IDCar', getBookingByIDCarAndDate);
+
+//route to get all bookings by IDdriver
+router.get('/getBookingsByIDdriver/:idDriver', getBookingsByIDdriver);
 
 
 module.exports = router;

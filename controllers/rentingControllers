@@ -24,7 +24,7 @@ async function deleteRenting(req,res) {
 
 }
 
-//get all renting
+//get all rentings
 async function getAllRenting(req,res) {
     try
     {

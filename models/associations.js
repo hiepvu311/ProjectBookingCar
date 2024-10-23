@@ -1,12 +1,14 @@
 // Import models
-const Bookings = require('./Bookings');
+const Bookings = require('./Booking');
 const Car = require('./Car');
-const Rentings =  require('./Rentings');
+const Rentings =  require('./Renting');
+const Drivers = require('./Driver')
 
 
-// connection between Bookings and Car
-Bookings.belongsTo(Car, { foreignKey: 'ID' });
-Rentings.hasone(Bookings, {foreignKey: 'ID'});
+Bookings.belongsTo(Car, { foreignKey: 'IDcar'});
+Bookings.hasOne(Rentings, {foreignKey: 'IDbooking'});
+Bookings.belongsTo(Drivers, {foreignKey: 'IDdriver'})
 
+module.exports = { Bookings, Car, Rentings, Drivers };
 
 //gọi association trong app.js require('./association');
