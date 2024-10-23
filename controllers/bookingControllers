@@ -3,6 +3,8 @@ const Bookings = require('../models/Booking');
 const Drivers = require('../models/Driver');
 const Car = require('../models/Car');
 const { Op } = require('sequelize');
+const sendConfirmationEmail = require('../services/emailService')
+const sequelize = require('sequelize');
 
 //function validate booking time
 function isValidTimeInterval(time) {
@@ -112,6 +114,29 @@ async function updateBooking(req, res) {
     }
 }
 
+//check conflict booking
+const checkDriverBookingConflict = async (IDdriver, timeStart, timeStop) => {
+    const existingBooking = await Bookings.findOne({
+        where: {
+            IDdriver,
+            [sequelize.Op.or]: [
+                {
+                    timeStart: {
+                        [sequelize.Op.between]: [timeStart, timeStop],
+                    },
+                },
+                {
+                    timeStop: {
+                        [sequelize.Op.between]: [timeStart, timeStop],
+                    },
+                },
+            ],
+        },
+    });
+
+    return !!existingBooking; // Trả về true nếu có xung đột
+};
+
 
 //add booking
 async function addBooking(req,res){
@@ -131,13 +156,33 @@ async function addBooking(req,res){
       return res.status(400).json({ error: 'Booking time overlaps with an existing booking.' });
     }
 
+    const conflict = await checkDriverBookingConflict(IDdriver, timeStart, timeStop);
+    if (conflict) 
+    {
+        return res.status(400).json({ message: 'Driver already has a booking during this time.' });
+    }
+
     console.log('Create a new booking');
     try
     {
         const newBooking = await Bookings.create({
             IDcar, Date, Duration_min, timeStart, timeStop, IDdriver
-          });
-        res.status(201).json({ message: 'Car added successfully', car: newBooking });
+          });   
+        const car = await Car.findByPk(IDcar);
+        const driver = await Drivers.findByPk(IDdriver);
+        console.log(driver.ID);
+
+        sendConfirmationEmail(driver.Email, {
+            driverName: `${driver.Name} ${driver.FamilyName}`,
+            carBrand: car.Brand,
+            carModel: car.Model,
+            carColor: car.Color,
+            date: newBooking.Date,
+            timeStart,
+            timeStop,
+        });
+    
+        res.status(201).json({ message: 'booking added successfully', car: newBooking });
     }
     catch (error) {
         console.error('Error adding new booking:', error);
@@ -232,6 +277,7 @@ async function getBookingsByIDdriver(req, res){
         res.status(500).json({ message: 'Internal server error' });
     }
 }
+
 
 
 module.exports = {

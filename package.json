@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^4.21.1",
     "mysql2": "^3.11.3",
+    "nodemailer": "^6.9.15",
     "sequelize": "^6.37.4",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"

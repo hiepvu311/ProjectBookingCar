@@ -11,4 +11,3 @@ Bookings.belongsTo(Drivers, {foreignKey: 'IDdriver'})
 
 module.exports = { Bookings, Car, Rentings, Drivers };
 
-//gọi association trong app.js require('./association');

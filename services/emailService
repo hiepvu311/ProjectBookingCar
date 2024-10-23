@@ -1,0 +1,41 @@
+// services/emailService.js
+const nodemailer = require('nodemailer');
+
+const sendConfirmationEmail = (email, { driverName, carBrand, carModel, carColor, date, timeStart, timeStop }) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'tranduyhoang.qc@gmail.com', // Địa chỉ email của bạn
+            pass: 'lvjl vdww utve qdfy', // App Password vừa tạo
+        }
+    });
+
+
+    const mailOptions = {
+        from: 'tranduyhoang.qc@gmail.com',
+        to: email,
+        subject: 'Booking Confirmation',
+        text: `
+            Dear ${driverName},
+
+            Your booking for the car has been confirmed with the following details:
+
+            Car: ${carBrand} ${carModel} (${carColor})
+            Date: ${date}
+            Start Time: ${timeStart}
+            End Time: ${timeStop}
+
+            Thank you for using our service.
+        `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email: ', error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+};
+
+module.exports = sendConfirmationEmail;
