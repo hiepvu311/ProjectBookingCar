@@ -7,3 +7,5 @@ const sequelize = new Sequelize('bookingcardatabase', 'root', '123456', {
 });
 
 module.exports = sequelize;
+
+
