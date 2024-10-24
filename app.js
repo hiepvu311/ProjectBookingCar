@@ -14,6 +14,7 @@ const port = 3000;
 
 //Middleware parse JSON
 app.use(express.json());
+app.use(express.static('public'));
 
 // Swagger configuration
 const swaggerOptions = {
@@ -47,6 +48,10 @@ sequelize.sync().then(() =>{
     console.error('Unable to connect to the database:', error);
 });
 
+//get index
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html'); // Cung cấp index.html
+});
 
 //route APT car information
 app.use('/cars', carRoutes)
